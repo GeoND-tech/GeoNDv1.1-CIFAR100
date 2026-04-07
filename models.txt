@@ -1,4 +1,4 @@
 geond.tech/models/v1.1/CIFAR100/resnet18.pth.tar
 geond.tech/models/v1.1/CIFAR100/resnet18-paraboloidout.pth.tar
-geond.tech/models/v1.1/CIFAR100/esnet18-paraboloid.pth.tar
+geond.tech/models/v1.1/CIFAR100/resnet18-paraboloid.pth.tar
 
