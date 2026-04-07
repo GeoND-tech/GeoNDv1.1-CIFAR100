@@ -11,32 +11,32 @@ pip install -r requirements.txt
 ```
 - (Optional) Download the pre-trained models by running:
 ```
-wget -i models.txt -P checkpoint
-```
-
-## IMPORTANT
-Including any layer with paraboloid neurons requires a specialized optimizer:
-```
-optimizer = gpt.GeoNDSGD(net.parameters(), lr=args.lr,
-                      momentum=args.momentum, weight_decay=args.wd, nesterov = args.nesterov)
+wget -i models.txt
 ```
 
 ## Models
-- ### dla
-Our baseline Deep Layer Aggregation model.
+- ### resnet18
+Our baseline ResNet18 model. After creating the model, we make some changes to accomodate the resolution of CIFAR100 images:
+```
+model.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+model.maxpool = nn.Identity()
+```
 #### Evaluation
 Download the pretrained model and run:
 ```
-python main.py --model dla --eval dla.pth
+python train.py ./data --dataset torch/cifar100 --dataset-download --num-classes 100 --img-size 32 --epochs 300 --resume resnet18.pth.tar --eval true
 ```
 #### Training from scratch
 Run:
 ```
-python main.py --model dla
+python train.py ./data --dataset torch/cifar100 --dataset-download --num-classes 100 --img-size 32 --opt sgd --momentum 0.9 --weight-decay 5e-4 --sched cosine --epochs 300 --lr 0.1 --batch-size 128 --min-lr 1e-5 --aa rand-m9-mstd0.5-inc1 --mixup 0.2 --cutmix 1.0 --reprob 0.25 --remode pixel --smoothing 0.1
 ```
 
-- ### dla_paraboloidout
-A DLA model with a layer of paraboloid neurons as the output layer. After the Version 1.1 update which fixed some issues, it is possible to use paraboloid layers as output layers. However, the fixes also cause such models to always overfit, see the Evaluation section for details.
+
+
+
+- ### resnet18-paraboloidout
+A ResNet18 model (modified for CIFAR100 as above) with a layer of paraboloid neurons as the output layer. After the Version 1.1 update which fixed some issues, it is possible to use paraboloid layers as output layers. Note that models with a paraboloid output layer (or a paraboloid layer before a linear output layer) seem to perform better without momentum. The training script will handle this through a command line argument. This model achieves the best accuracy.
 
 In terms of code, first we import the Library:
 ```
@@ -48,34 +48,23 @@ except ImportError:
 
 Then we replace the existing output layer:
 ```
-#self.linear = nn.Linear(512, num_classes)
-self.paraboloid = gpt.ParaboloidOutput(512, num_classes, h_factor = 0.01, lr_factor = 1., wd_factor = 0.1, grad_factor = 1., input_factor = 0.4, output_factor = 0.1, init='spotlight')
+model.fc = gpt.ParaboloidOutput(model.fc.in_features, model.fc.out_features, h_factor = 0.01, lr_factor = 1., wd_factor = 1., grad_factor = 1., input_factor = 0.5, output_factor = 0.1, p_factor=0.0001, init = 'spotlight')
 ```
 Note that ```ParaboloidOutput``` is the same as ```Paraboloid```, it just uses a base configuration more appropriate for output layers. We use a slightly different configuration here.
-
-Remember to update the forward function:
-```
-out = self.layer6(out)
-out = F.avg_pool2d(out, 4)
-out = out.view(out.size(0), -1)
-out = self.paraboloid(out)
-#out = self.linear(out)
-```
 
 #### Evaluation
 Download the pretrained model and run:
 ```
-python main.py --model dla_paraboloidout --eval dla_paraboloidout.pth
+python train.py ./data --dataset torch/cifar100 --dataset-download --num-classes 100 --img-size 32 --epochs 300 --paraboloid true --paraboloidout true --resume resnet18-paraboloidout.pth.tar --eval true
 ```
 #### Training from scratch
-Note that models with a paraboloid output layer (or a paraboloid layer before a linear output layer) seem to perform better without momentum. To train the model without momentum, run:
+ To train the model without momentum, run:
 ```
-python main.py --model dla_paraboloidout --momentum 0.0 --nesterov False
+python train.py ./data --dataset torch/cifar100 --dataset-download --num-classes 100 --img-size 32 --opt sgd --momentum 0.9 --weight-decay 5e-4 --sched cosine --epochs 300 --lr 0.1 --batch-size 128 --min-lr 1e-5 --aa rand-m9-mstd0.5-inc1 --mixup 0.2 --cutmix 1.0 --reprob 0.25 --remode pixel --smoothing 0.1 --paraboloid true --paraboloidout true
 ```
 
 
-- ### DLA_paraconv_quarter
-A DLA model with the first convolutional layer replaced with a paraboloid convolutional layer with 4 units instead of the original 16. We do this to avoid overfitting and also reduce the size and execution time of the model. This model can achieve better performance with almost the same speed, especially when using the faster licensed version of the library. See the Evaluation section for details.
+- ### resnet18-paraboloid
 
 In terms of code, again, we first import the Library:
 ```
