@@ -94,9 +94,9 @@ python train.py ./data --dataset torch/cifar100 --dataset-download --num-classes
 ## Evaluation of pretrained models
 |   Model           | Accuracy |
 | ----------------- |-------- |
-| **resnet18** - baseline   | 78.89% |
-| **resnet18-paraboloidout**         | **79.33%** |
-| **resnet18-paraboloid**      | 79.05% |
+| ```resnet18``` - baseline   | 78.89% |
+| ```resnet18-paraboloidout```         | **79.33%** |
+| ```resnet18-paraboloid```      | 79.05% |
 
 Note that, due to numerical issues, the results may not always line up exactly.
 
