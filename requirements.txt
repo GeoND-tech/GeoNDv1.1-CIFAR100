@@ -1,0 +1,8 @@
+torch==2.9.0
+torchvision==0.24.0
+pyyaml
+huggingface_hub>=0.17.0
+safetensors>=0.2
+numpy
+geondptfree==2.9.0.1.1rc5
+
