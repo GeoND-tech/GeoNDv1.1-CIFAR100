@@ -98,7 +98,28 @@ python train.py ./data --dataset torch/cifar100 --dataset-download --num-classes
 | **resnet18-paraboloidout**         | **79.33%** |
 | **resnet18-paraboloid**      | 79.05% |
 
-Note that, due to numerical issues and data augmentation, the results may not always line up exactly.
+Note that, due to numerical issues, the results may not always line up exactly.
+
+## Overfitting
+
+While searching for the best parameters, we noticed that there are some sets that overfit the data, even with the augmentations applied. More specifically, for ```resnet18-paraboloidout```, this involves using ```input_factor = 1.0``` instead of ```input_factor = 0.5``` and for ```resnet18-paraboloid``` this involves using ```lr_factor = 10.``` instead of ```lr_factor = 1000.```. We do not yet have any interpretation for this behavior.
+
+To review the overfitting without training models from scratch, we include the log files for the following models in this repository. Studying them will reveal that the overfitting log lists lower values loss for the loss function, yet worse accuracy. Below is a list of the log files:
+
+- ```resnet18``` (baseline): [https://github.com/GeoND-tech/GeoNDv1.1-CIFAR100/blob/main/resnet18-summary.csv](https://github.com/GeoND-tech/GeoNDv1.1-CIFAR100/blob/main/resnet18-summary.csv)
+- ```resnet18-paraboloidout```: [https://github.com/GeoND-tech/GeoNDv1.1-CIFAR100/blob/main/resnet18-paraboloidout-summary.csv](https://github.com/GeoND-tech/GeoNDv1.1-CIFAR100/blob/main/resnet18-paraboloidout-summary.csv)
+- ```resnet18-paraboloid```: [https://github.com/GeoND-tech/GeoNDv1.1-CIFAR100/blob/main/resnet18-paraboloid-summary.csv](https://github.com/GeoND-tech/GeoNDv1.1-CIFAR100/blob/main/resnet18-paraboloid-summary.csv)
+- Overfitting ```resnet18-paraboloidout```: [https://github.com/GeoND-tech/GeoNDv1.1-CIFAR100/blob/main/resnet18-paraboloidout-overfit-summary.csv](https://github.com/GeoND-tech/GeoNDv1.1-CIFAR100/blob/main/resnet18-paraboloidout-overfit-summary.csv)
+
+To overfit ```resnet18-paraboloidout```, run:
+```
+python train.py ./data --dataset torch/cifar100 --dataset-download --num-classes 100 --img-size 32 --opt sgd --momentum 0.9 --weight-decay 5e-4 --sched cosine --epochs 300 --lr 0.1 --batch-size 128 --min-lr 1e-5 --aa rand-m9-mstd0.5-inc1 --mixup 0.2 --cutmix 1.0 --reprob 0.25 --remode pixel --smoothing 0.1 --paraboloid true --paraboloidout true --overfit true
+```
+
+To overfit ```resnet18-paraboloid```, run:
+```
+python train.py ./data --dataset torch/cifar100 --dataset-download --num-classes 100 --img-size 32 --opt sgd --momentum 0.9 --weight-decay 5e-4 --sched cosine --epochs 300 --lr 0.1 --batch-size 128 --min-lr 1e-5 --aa rand-m9-mstd0.5-inc1 --mixup 0.2 --cutmix 1.0 --reprob 0.25 --remode pixel --smoothing 0.1 --paraboloid true --overfit true
+```
 
 ## References
 - Original repository: [https://github.com/huggingface/pytorch-image-models](https://github.com/huggingface/pytorch-image-models)
